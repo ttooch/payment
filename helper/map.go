@@ -73,6 +73,8 @@ func CreateLinkString(inputs *map[string]interface{}) string {
 		}
 	}
 
+	fmt.Println(buf.String())
+
 	return buf.String()
 }
 

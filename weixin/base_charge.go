@@ -3,9 +3,11 @@ package weixin
 import (
 	"bytes"
 	"encoding/xml"
-	"github.com/scholar-ink/payment/helper"
 	"io/ioutil"
+	"strconv"
 	"strings"
+	"time"
+	"github.com/ttooch/payment/helper"
 )
 
 const (
@@ -36,15 +38,17 @@ type BaseCharge struct {
 }
 
 type BaseConfig struct {
-	AppId     string `xml:"appid" json:"appid"`
-	MchId     string `xml:"mch_id" json:"mch_id"`
-	SubAppId  string `xml:"sub_appid,omitempty" json:"sub_appid,omitempty"`
-	SubMchId  string `xml:"sub_mch_id,omitempty" json:"sub_mch_id,omitempty"`
-	TimeStart string `xml:"time_start" json:"time_start"`
-	Md5Key    string `xml:"-" json:"-"`
-	SignType  string `xml:"sign_type" json:"sign_type"`
-	Sign      string `xml:"sign" json:"sign"`
-	NonceStr  string `xml:"nonce_str" json:"nonce_str"`
+	AppId      string `xml:"appid" json:"appid"`
+	MchId      string `xml:"mch_id" json:"mch_id"`
+	SubAppId   string `xml:"sub_appid,omitempty" json:"sub_appid,omitempty"`
+	SubMchId   string `xml:"sub_mch_id,omitempty" json:"sub_mch_id,omitempty"`
+	TimeStart  string `xml:"time_start" json:"time_start"`
+	TimeExpire string `xml:"time_expire,omitempty" json:"time_expire,omitempty"`
+	NotifyUrl  string `xml:"notify_url" json:"notify_url"`
+	Md5Key     string `xml:"-" json:"-"`
+	SignType   string `xml:"sign_type" json:"sign_type"`
+	Sign       string `xml:"sign" json:"sign"`
+	NonceStr   string `xml:"nonce_str" json:"nonce_str"`
 }
 
 func (base *BaseCharge) SendReq(pay interface{}) (b []byte) {
@@ -96,5 +100,11 @@ func (base *BaseCharge) makeSign(sign string) string {
 
 func (base *BaseCharge) initBaseConfig(config *BaseConfig) {
 	config.NonceStr = helper.NonceStr()
+
+	if exprire, err := strconv.Atoi(config.TimeExpire); exprire > 0 && err == nil {
+
+	}
+
+	config.TimeStart = time.Now().Format("20060102150405")
 	base.BaseConfig = config
 }
