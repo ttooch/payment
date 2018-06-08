@@ -98,7 +98,7 @@ func (base *BaseCharge) makeSign(sign string) string {
 	return strings.ToUpper(sign)
 }
 
-func (base *BaseCharge) initBaseConfig(config *BaseConfig) {
+func (base *BaseCharge) InitBaseConfig(config *BaseConfig) {
 	config.NonceStr = helper.NonceStr()
 
 	if config.ExpireDuration != 0 {

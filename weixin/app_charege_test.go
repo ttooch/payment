@@ -10,7 +10,7 @@ func TestHandle(t *testing.T) {
 
 	app := new(PubCharge)
 
-	app.initBaseConfig(&BaseConfig{
+	app.InitBaseConfig(&BaseConfig{
 		AppId:          "wxa33cba2b69f869f3",
 		MchId:          "1491561542",
 		Md5Key:         "9689489231d792a260e2559586276916",

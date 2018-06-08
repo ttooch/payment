@@ -41,7 +41,11 @@ type PubReturn struct {
 }
 
 func (app *PubCharge) Handle(conf map[string]interface{}) (interface{}, error) {
-	app.BuildData(conf)
+	err := app.BuildData(conf)
+
+	if err != nil {
+		return nil, err
+	}
 	app.SetSign(app)
 	ret := app.SendReq(app)
 	return app.RetData(ret)
@@ -84,7 +88,7 @@ func (app *PubCharge) RetData(ret []byte) (pubReturn PubReturn, err error) {
 
 }
 
-func (app *PubCharge) BuildData(conf map[string]interface{}) {
+func (app *PubCharge) BuildData(conf map[string]interface{}) error {
 
 	b, _ := json.Marshal(conf)
 
@@ -92,7 +96,21 @@ func (app *PubCharge) BuildData(conf map[string]interface{}) {
 
 	json.Unmarshal(b, &pubConf)
 
+	if pubConf.NotifyUrl == "" {
+		return errors.New("NotifyUrl 不能为空")
+	}
+
+	if pubConf.SpbillCreateIp == "" {
+		pubConf.SpbillCreateIp = "127.0.0.1"
+	}
+
+	if pubConf.FeeType == "" {
+		pubConf.FeeType = "CNY"
+	}
+
 	app.PubConf = &pubConf
 
 	app.PubConf.TradeType = "JSAPI"
+
+	return nil
 }
