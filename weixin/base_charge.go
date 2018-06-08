@@ -82,7 +82,6 @@ func (base *BaseCharge) SetSign(pay interface{}) {
 	signStr := helper.CreateLinkString(&mapData)
 
 	base.Sign = base.makeSign(signStr)
-
 }
 
 func (base *BaseCharge) makeSign(sign string) string {
