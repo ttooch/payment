@@ -91,6 +91,7 @@ func (wx *WxNotify) verifySign() error {
 func (wx *WxNotify) replyNotify(flag bool, msg string) string {
 
 	type ReturnResult struct {
+		XMLName xml.Name `xml:"xml" json:"-"`
 		ReturnCode string `xml:"return_code"`
 		ReturnMsg string	`xml:"return_msg"`
 	}
