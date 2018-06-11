@@ -6,7 +6,6 @@ import (
 	"github.com/ttooch/payment/helper"
 	"github.com/ttooch/payment/weixin"
 	"strings"
-	"fmt"
 )
 
 type WxNotifyData struct {
@@ -41,7 +40,7 @@ func (wx *WxNotify) InitBaseConfig(config *weixin.BaseConfig) {
 	wx.BaseConfig = config
 }
 
-func (wx *WxNotify) GetNotifyData(notifyXml string) error {
+func (wx *WxNotify) getNotifyData(notifyXml string) error {
 
 	if notifyXml == "" {
 		return errors.New("获取通知数据失败")
@@ -60,7 +59,7 @@ func (wx *WxNotify) GetNotifyData(notifyXml string) error {
 	return nil
 }
 
-func (wx *WxNotify) CheckNotify() error {
+func (wx *WxNotify) checkNotify() error {
 	if wx.notifyData.ResultCode != "SUCCESS" || wx.notifyData.ReturnCode != "SUCCESS" {
 		return errors.New("微信返回失败")
 	}
@@ -109,8 +108,6 @@ func (wx *WxNotify) replyNotify(flag bool, msg string) string {
 
 	b, err := xml.Marshal(result)
 
-	fmt.Println(err)
-
 	if err != nil {
 		return ""
 	}
@@ -120,14 +117,14 @@ func (wx *WxNotify) replyNotify(flag bool, msg string) string {
 
 type CallBack func(data *WxNotifyData) error
 
-func (wx *WxNotify) handle(xml string, callBack CallBack) string {
-	err := wx.GetNotifyData(xml)
+func (wx *WxNotify) Handle(xml string, callBack CallBack) string {
+	err := wx.getNotifyData(xml)
 
 	if err != nil {
 		return wx.replyNotify(false, err.Error())
 	}
 
-	err = wx.CheckNotify()
+	err = wx.checkNotify()
 
 	if err != nil {
 		return wx.replyNotify(false, err.Error())
