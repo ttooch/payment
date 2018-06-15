@@ -25,7 +25,7 @@ func TestMicroPayWithPosConnectTimeout(t *testing.T) {
 		ExpireDuration: time.Second * 60,
 	})
 
-	ret, err := app.MicroPayWithPosConnectTimeout(map[string]interface{}{
+	ret, err := app.Handle(map[string]interface{}{
 		"device_info":      "013467007045764",
 		"body":             "image形象店-深圳腾大- QQ公仔",
 		"out_trade_no":     "2015080612534621222222",
