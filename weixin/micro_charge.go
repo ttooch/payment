@@ -15,7 +15,7 @@ import (
 
 type MicroCharge struct {
 	XMLName xml.Name `xml:"xml" json:"-"`
-	*MicroConf
+	*PayConf
 	BaseCharge
 }
 
@@ -23,7 +23,7 @@ const SYSTEMERROR = "SYSTEMERROR"
 const BANKERROR = "BANKERROR"
 const USERPAYING = "USERPAYING"
 
-type MicroConf struct {
+type PayConf struct {
 	//Openid         string    `xml:"openid,omitempty" json:"openid,omitempty"`
 	//SubOpenid      string    `xml:"sub_openid,omitempty" json:"sub_openid,omitempty"`
 	Body           string    `xml:"body" json:"body"`
@@ -95,19 +95,19 @@ func (app *MicroCharge) BuildData(conf map[string]interface{}) error {
 
 	b, _ := json.Marshal(conf)
 
-	var MicroConf MicroConf
+	var PayConf PayConf
 
-	json.Unmarshal(b, &MicroConf)
+	json.Unmarshal(b, &PayConf)
 
-	if MicroConf.SpbillCreateIp == "" {
-		MicroConf.SpbillCreateIp = "127.0.0.1"
+	if PayConf.SpbillCreateIp == "" {
+		PayConf.SpbillCreateIp = "127.0.0.1"
 	}
 
-	if MicroConf.FeeType == "" {
-		MicroConf.FeeType = "CNY"
+	if PayConf.FeeType == "" {
+		PayConf.FeeType = "CNY"
 	}
 
-	app.MicroConf = &MicroConf
+	app.PayConf = &PayConf
 
 
 	return nil
