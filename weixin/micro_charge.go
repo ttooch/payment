@@ -140,7 +140,7 @@ func (app *MicroCharge) Handle(data map[string]interface{}, connectTimeoutMs int
 		startTimestampMs := helper.CurrentTimeStampMS()
 		readTimeoutMs := remainingTimeMs - connectTimeoutMs
 		if readTimeoutMs > 1000 {
-			result, err := app.Handle(data)
+			result, err := app.MicroPayWithPosConnectTimeout(data)
 			if err != nil {
 				goto ERROR
 			}
