@@ -10,7 +10,10 @@ import (
 )
 
 const (
-	ReqUrl  = "https://api.mch.weixin.qq.com/pay/unifiedorder"
+	UnifiedorderReqUrl  = "https://api.mch.weixin.qq.com/pay/unifiedorder"
+	MicropayReqUrl  = "https://api.mch.weixin.qq.com/pay/micropay"
+	OrderqueryReqUrl = "https://api.mch.weixin.qq.com/pay/orderquery"
+	ReverseReqUrl ="https://api.mch.weixin.qq.com/secapi/pay/reverse"
 	SUCCESS = "SUCCESS"
 )
 
@@ -22,6 +25,7 @@ type Error struct {
 	ErrCodeDes string `xml:"err_code_des"`
 	PrepayId   string `xml:"prepay_id"`
 	CodeUrl    string `xml:"code_url"`
+	Recall     string `xml:"recall"`
 }
 
 type Return struct {
@@ -30,6 +34,7 @@ type Return struct {
 	MchId      string `xml:"mch_id"`
 	DeviceInfo string `xml:"device_info"`
 	NonceStr   string `xml:"nonce_str"`
+	TradeState string `xml:"trade_state"`
 }
 
 type BaseCharge struct {
@@ -51,7 +56,7 @@ type BaseConfig struct {
 	ExpireDuration time.Duration `xml:"-" json:"-"`
 }
 
-func (base *BaseCharge) SendReq(pay interface{}) (b []byte) {
+func (base *BaseCharge) SendReq(reqUrl string,pay interface{}) (b []byte) {
 
 	buffer := bytes.NewBuffer(b)
 
@@ -63,7 +68,7 @@ func (base *BaseCharge) SendReq(pay interface{}) (b []byte) {
 
 	client := helper.DefaultHttpClient
 
-	httpResp, err := client.Post(ReqUrl, "text/xml; charset=utf-8", buffer)
+	httpResp, err := client.Post(reqUrl, "text/xml; charset=utf-8", buffer)
 
 	if err != nil {
 		return

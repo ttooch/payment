@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"github.com/chanxuehong/rand"
+	"time"
 )
 
 func Md5(s string) string {
@@ -16,4 +17,9 @@ func Md5(s string) string {
 
 func NonceStr() string {
 	return string(rand.NewHex())
+}
+
+//CurrentTimeStampMS get current time with millisecond
+func CurrentTimeStampMS() int64 {
+	return time.Now().UnixNano() / time.Millisecond.Nanoseconds()
 }

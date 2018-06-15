@@ -47,7 +47,7 @@ func (app *PubCharge) Handle(conf map[string]interface{}) (interface{}, error) {
 		return nil, err
 	}
 	app.SetSign(app)
-	ret := app.SendReq(app)
+	ret := app.SendReq(UnifiedorderReqUrl,app)
 	return app.RetData(ret)
 }
 

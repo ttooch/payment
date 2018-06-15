@@ -42,7 +42,7 @@ type AppReturn struct {
 func (app *AppCharge) Handle(conf map[string]interface{}) (interface{}, error) {
 	app.BuildData(conf)
 	app.SetSign(app)
-	ret := app.SendReq(app)
+	ret := app.SendReq(UnifiedorderReqUrl,app)
 	return app.RetData(ret)
 }
 
