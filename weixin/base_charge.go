@@ -10,11 +10,11 @@ import (
 )
 
 const (
-	UnifiedorderReqUrl  = "https://api.mch.weixin.qq.com/pay/unifiedorder"
-	MicropayReqUrl  = "https://api.mch.weixin.qq.com/pay/micropay"
-	OrderqueryReqUrl = "https://api.mch.weixin.qq.com/pay/orderquery"
-	ReverseReqUrl ="https://api.mch.weixin.qq.com/secapi/pay/reverse"
-	SUCCESS = "SUCCESS"
+	UnifiedorderReqUrl = "https://api.mch.weixin.qq.com/pay/unifiedorder"
+	MicropayReqUrl     = "https://api.mch.weixin.qq.com/pay/micropay"
+	OrderqueryReqUrl   = "https://api.mch.weixin.qq.com/pay/orderquery"
+	ReverseReqUrl      = "https://api.mch.weixin.qq.com/secapi/pay/reverse"
+	SUCCESS            = "SUCCESS"
 )
 
 type Error struct {
@@ -48,15 +48,17 @@ type BaseConfig struct {
 	SubMchId       string        `xml:"sub_mch_id,omitempty" json:"sub_mch_id,omitempty"`
 	TimeStart      string        `xml:"time_start,omitempty" json:"time_start,omitempty"`
 	TimeExpire     string        `xml:"time_expire,omitempty" json:"time_expire,omitempty"`
-	NotifyUrl      string        `xml:"notify_url" json:"notify_url"`
+	NotifyUrl      string        `xml:"notify_url,omitempty" json:"notify_url,omitempty"`
 	Md5Key         string        `xml:"-" json:"-"`
 	SignType       string        `xml:"sign_type,omitempty" json:"sign_type,omitempty"`
 	Sign           string        `xml:"sign" json:"sign"`
 	NonceStr       string        `xml:"nonce_str" json:"nonce_str"`
 	ExpireDuration time.Duration `xml:"-" json:"-"`
+	Cert           string        `xml:"-" json:"-"`
+	Key            string        `xml:"-" json:"-"`
 }
 
-func (base *BaseCharge) SendReq(reqUrl string,pay interface{}) (b []byte) {
+func (base *BaseCharge) SendReq(reqUrl string, pay interface{}) (b []byte) {
 
 	buffer := bytes.NewBuffer(b)
 
@@ -107,7 +109,7 @@ func (base *BaseCharge) InitBaseConfig(config *BaseConfig) {
 
 	if config.ExpireDuration != 0 {
 		config.TimeExpire = time.Now().Add(config.ExpireDuration).Format("20060102150405")
-	}else {
+	} else {
 		config.TimeExpire = ""
 	}
 	config.TimeStart = time.Now().Format("20060102150405")

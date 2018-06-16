@@ -5,17 +5,16 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"github.com/ttooch/payment/helper"
 	"github.com/ttooch/payment/weixin"
 	"io/ioutil"
 	"strings"
-	"time"
 )
 
 const (
 	WXREFUNDURL = "https://api.mch.weixin.qq.com/secapi/pay/refund"
 	SUCCESS     = "SUCCESS"
+	FAIL     = "FAIL"
 )
 
 type Error struct {
@@ -33,18 +32,15 @@ type WxReturn struct {
 	AppId     string `json:"appId"`
 	TimeStamp int64  `json:"timeStamp"`
 	NonceStr  string `json:"nonceStr"`
-	Package   string `json:"package"`
-	SignType  string `json:"signType"`
-	PaySign   string `json:"paySign"`
+	RefundId  string `xml:"refund_id"`
 }
 
 type Return struct {
-	AppId      string `xml:"appid"`
-	SubAppId   string `xml:"sub_appid"`
-	MchId      string `xml:"mch_id"`
-	DeviceInfo string `xml:"device_info"`
-	NonceStr   string `xml:"nonce_str"`
-	TradeState string `xml:"trade_state"`
+	AppId    string `xml:"appid"`
+	SubAppId string `xml:"sub_appid"`
+	MchId    string `xml:"mch_id"`
+	NonceStr string `xml:"nonce_str"`
+	RefundId string `xml:"refund_id"`
 }
 
 type WxRefund struct {
@@ -60,19 +56,20 @@ type WxConf struct {
 	RefundFee     int64  `xml:"refund_fee" json:"refund_fee"`
 	RefundFeeType string `xml:"refund_fee_type,omitempty" json:"refund_fee_type,omitempty"`
 	RefundDesc    string `xml:"refund_desc,omitempty" json:"refund_desc,omitempty"`
+
 }
 
-func (wx *WxRefund) Handle(conf map[string]interface{}) (interface{}, error) {
+func (wx *WxRefund) Handle(conf map[string]interface{}) (string, error) {
 	err := wx.BuildData(conf)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	wx.SetSign(wx)
-	ret,err := wx.sendReq(WXREFUNDURL)
+	ret, err := wx.sendReq(WXREFUNDURL)
 	return wx.RetData(ret)
 }
 
-func (wx *WxRefund) RetData(ret []byte) (wxReturn WxReturn, err error) {
+func (wx *WxRefund) RetData(ret []byte) (refundId string, err error) {
 
 	var result struct {
 		Error
@@ -81,36 +78,21 @@ func (wx *WxRefund) RetData(ret []byte) (wxReturn WxReturn, err error) {
 
 	xml.Unmarshal(ret, &result)
 
-	fmt.Printf("%+v", result)
-
 	if result.ReturnCode == SUCCESS && result.ResultCode == SUCCESS {
 
-		if result.SubAppId != "" {
-			wxReturn.AppId = result.SubAppId
-		} else {
-			wxReturn.AppId = result.AppId
-		}
+		refundId = result.RefundId
 
-		wxReturn.TimeStamp = time.Now().Unix()
-
-		wxReturn.NonceStr = helper.NonceStr()
-
-		wxReturn.Package = "prepay_id=" + result.PrepayId
-
-		wx.SetSign(wxReturn)
-
-		wxReturn.PaySign = wx.Sign
-
-	} else {
-
-		return wxReturn, errors.New(result.ErrCodeDes)
+	} else if result.ReturnCode == FAIL {
+		return refundId, errors.New(result.ReturnMsg)
+	}else {
+		return refundId, errors.New(result.ErrCodeDes)
 	}
 
-	return wxReturn, nil
+	return refundId, nil
 
 }
 
-func (wx *WxRefund) sendReq(reqUrl string) (b []byte,err error) {
+func (wx *WxRefund) sendReq(reqUrl string) (b []byte, err error) {
 
 	buffer := bytes.NewBuffer(b)
 
@@ -120,13 +102,14 @@ func (wx *WxRefund) sendReq(reqUrl string) (b []byte,err error) {
 		return
 	}
 
-	client := helper.NewTLSHttpClient("/Users/zhouchao/go/src/github.com/ttooch/payment/refund/pem/apiclient_cert.pem", "/Users/zhouchao/go/src/github.com/ttooch/payment/refund/pem/apiclient_key.pem")
+	client := helper.NewTLSBlockHttpClient([]byte(wx.Cert),[]byte(wx.Key))
 
-	fmt.Println(buffer.String())
+	if client == nil {
+		err = errors.New("证书有误")
+		return
+	}
 
 	httpResp, err := client.Post(reqUrl, "text/xml; charset=utf-8", buffer)
-
-	fmt.Println(err)
 
 	if err != nil {
 		return
@@ -184,13 +167,24 @@ func (wx *WxRefund) BuildData(conf map[string]interface{}) error {
 		return errors.New("退款金额不能大于订单金额")
 	}
 
+
+
 	wx.WxConf = &wxConf
 
 	return nil
 }
 
 func (wx *WxRefund) InitBaseConfig(config *weixin.BaseConfig) {
+
 	config.NonceStr = helper.NonceStr()
+
+	if config.Cert == "" {
+		panic ("Cert证书不能为空")
+	}
+
+	if config.Key == "" {
+		panic ("Key证书不能为空")
+	}
 
 	wx.BaseConfig = config
 }

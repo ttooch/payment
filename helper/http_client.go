@@ -47,6 +47,7 @@ func NewTLSHttpClient(certFile, keyFile string) (httpClient *http.Client) {
 
 func NewTLSBlockHttpClient(certPEMBlock, keyPEMBlock  []byte) (httpClient *http.Client) {
 	cert, err := tls.X509KeyPair(certPEMBlock, keyPEMBlock)
+
 	if err != nil {
 		return nil
 	}
