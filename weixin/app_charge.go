@@ -23,10 +23,7 @@ type AppConf struct {
 	FeeType        string `xml:"fee_type,omitempty" json:"fee_type,omitempty"`
 	TotalFee       int64  `xml:"total_fee" json:"total_fee"`
 	SpbillCreateIp string `xml:"spbill_create_ip" json:"spbill_create_ip"`
-	TimeStart      string `xml:"time_start,omitempty" json:"time_start,omitempty"`
-	TimeExpire     string `xml:"time_expire,omitempty" json:"time_expire,omitempty"`
 	GoodsTag       string `xml:"goods_tag,omitempty" json:"goods_tag,omitempty" `
-	NotifyUrl      string `xml:"notify_url" json:"notify_url"`
 	TradeType      string `xml:"trade_type" json:"trade_type"`
 }
 
@@ -40,7 +37,10 @@ type AppReturn struct {
 }
 
 func (app *AppCharge) Handle(conf map[string]interface{}) (interface{}, error) {
-	app.BuildData(conf)
+	err := app.BuildData(conf)
+	if err != nil {
+		return nil, err
+	}
 	app.SetSign(app)
 	ret := app.SendReq(UnifiedorderReqUrl,app)
 	return app.RetData(ret)
@@ -83,7 +83,7 @@ func (app *AppCharge) RetData(ret []byte) (appReturn AppReturn, err error) {
 
 }
 
-func (app *AppCharge) BuildData(conf map[string]interface{}) {
+func (app *AppCharge) BuildData(conf map[string]interface{}) error  {
 
 	b, _ := json.Marshal(conf)
 
@@ -94,4 +94,6 @@ func (app *AppCharge) BuildData(conf map[string]interface{}) {
 	app.AppConf = &appConf
 
 	app.AppConf.TradeType = "APP"
+
+	return nil
 }

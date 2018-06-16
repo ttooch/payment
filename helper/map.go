@@ -50,13 +50,17 @@ func CreateLinkString(inputs *map[string]interface{}) string {
 
 		if k != "sign" && k != "paySign" {
 
+			v := (*inputs)[k]
+
+			if v == reflect.Zero(reflect.TypeOf(v)).Interface() {
+				continue
+			}
+
 			prefix := k + "="
 
 			if buf.Len() > 0 {
 				buf.WriteByte('&')
 			}
-
-			v := (*inputs)[k]
 
 			rt := reflect.TypeOf(v)
 

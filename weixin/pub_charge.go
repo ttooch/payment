@@ -24,10 +24,7 @@ type PubConf struct {
 	FeeType        string `xml:"fee_type,omitempty" json:"fee_type,omitempty"`
 	TotalFee       int64  `xml:"total_fee" json:"total_fee"`
 	SpbillCreateIp string `xml:"spbill_create_ip" json:"spbill_create_ip"`
-	TimeStart      string `xml:"time_start,omitempty" json:"time_start,omitempty"`
-	TimeExpire     string `xml:"time_expire,omitempty" json:"time_expire,omitempty"`
 	GoodsTag       string `xml:"goods_tag,omitempty" json:"goods_tag,omitempty" `
-	NotifyUrl      string `xml:"notify_url" json:"notify_url"`
 	TradeType      string `xml:"trade_type" json:"trade_type"`
 }
 
@@ -95,10 +92,6 @@ func (app *PubCharge) BuildData(conf map[string]interface{}) error {
 	var pubConf PubConf
 
 	json.Unmarshal(b, &pubConf)
-
-	if pubConf.NotifyUrl == "" {
-		return errors.New("NotifyUrl 不能为空")
-	}
 
 	if pubConf.SpbillCreateIp == "" {
 		pubConf.SpbillCreateIp = "127.0.0.1"

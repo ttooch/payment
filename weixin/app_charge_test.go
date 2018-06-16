@@ -19,12 +19,13 @@ func TestHandle(t *testing.T) {
 
 	//服务商发起支付
 	app.InitBaseConfig(&BaseConfig{
-		AppId:    "wxf06ac118ca3d9533",
-		MchId:    "1495589652",
-		SubAppId: "wxa33cba2b69f869f3",
-		SubMchId: "1495746312",
-		Md5Key:   "057177a8459352933f755c535b0ab0ef",
-		SignType: "MD5",
+		AppId:     "wxf06ac118ca3d9533",
+		MchId:     "1495589652",
+		SubAppId:  "wxa33cba2b69f869f3",
+		SubMchId:  "1495746312",
+		Md5Key:    "057177a8459352933f755c535b0ab0ef",
+		SignType:  "MD5",
+		NotifyUrl: "http://api.store.udian.me/v1/payment/notify",
 	})
 
 	ret, err := app.Handle(map[string]interface{}{
@@ -37,14 +38,11 @@ func TestHandle(t *testing.T) {
 		"total_fee":        1,
 		"spbill_create_ip": "123.12.12.123",
 		"goods_tag":        "",
-		"notify_url":       "http://api.store.udian.me/v1/payment/notify",
 		//"openid":           "oyA310LEnY_JW_-BDHVJguSpFyKQ",
-		"sub_openid":       "oyA310LEnY_JW_-BDHVJguSpFyKQ",
+		"sub_openid": "oyA310LEnY_JW_-BDHVJguSpFyKQ",
 	})
 
 	fmt.Printf("%+v", ret)
 
 	fmt.Println(err)
 }
-
-

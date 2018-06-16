@@ -46,11 +46,11 @@ type BaseConfig struct {
 	MchId          string        `xml:"mch_id" json:"mch_id"`
 	SubAppId       string        `xml:"sub_appid,omitempty" json:"sub_appid,omitempty"`
 	SubMchId       string        `xml:"sub_mch_id,omitempty" json:"sub_mch_id,omitempty"`
-	TimeStart      string        `xml:"time_start" json:"time_start"`
+	TimeStart      string        `xml:"time_start,omitempty" json:"time_start,omitempty"`
 	TimeExpire     string        `xml:"time_expire,omitempty" json:"time_expire,omitempty"`
 	NotifyUrl      string        `xml:"notify_url" json:"notify_url"`
 	Md5Key         string        `xml:"-" json:"-"`
-	SignType       string        `xml:"sign_type" json:"sign_type"`
+	SignType       string        `xml:"sign_type,omitempty" json:"sign_type,omitempty"`
 	Sign           string        `xml:"sign" json:"sign"`
 	NonceStr       string        `xml:"nonce_str" json:"nonce_str"`
 	ExpireDuration time.Duration `xml:"-" json:"-"`
@@ -66,7 +66,7 @@ func (base *BaseCharge) SendReq(reqUrl string,pay interface{}) (b []byte) {
 		panic(err)
 	}
 
-	client := helper.DefaultHttpClient
+	client := helper.NewHttpClient()
 
 	httpResp, err := client.Post(reqUrl, "text/xml; charset=utf-8", buffer)
 
