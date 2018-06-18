@@ -10,11 +10,11 @@ import (
 )
 
 const (
-	UnifiedorderReqUrl = "https://api.mch.weixin.qq.com/pay/unifiedorder"
-	MicropayReqUrl     = "https://api.mch.weixin.qq.com/pay/micropay"
-	OrderqueryReqUrl   = "https://api.mch.weixin.qq.com/pay/orderquery"
-	ReverseReqUrl      = "https://api.mch.weixin.qq.com/secapi/pay/reverse"
-	SUCCESS            = "SUCCESS"
+	UnifiedorderReqUrl  = "https://api.mch.weixin.qq.com/pay/unifiedorder"
+	MicropayReqUrl  = "https://api.mch.weixin.qq.com/pay/micropay"
+	OrderQueryReqUrl = "https://api.mch.weixin.qq.com/pay/orderquery"
+	ReverseReqUrl ="https://api.mch.weixin.qq.com/secapi/pay/reverse"
+	SUCCESS = "SUCCESS"
 )
 
 type Error struct {
@@ -56,6 +56,10 @@ type BaseConfig struct {
 	ExpireDuration time.Duration `xml:"-" json:"-"`
 	Cert           string        `xml:"-" json:"-"`
 	Key            string        `xml:"-" json:"-"`
+}
+
+type OrderOutTradeNo struct {
+	OutTradeNo     string    `xml:"out_trade_no" json:"out_trade_no"`
 }
 
 func (base *BaseCharge) SendReq(reqUrl string, pay interface{}) (b []byte) {
@@ -112,6 +116,6 @@ func (base *BaseCharge) InitBaseConfig(config *BaseConfig) {
 	} else {
 		config.TimeExpire = ""
 	}
-	config.TimeStart = time.Now().Format("20060102150405")
+	//config.TimeStart = time.Now().Format("20060102150405")
 	base.BaseConfig = config
 }
