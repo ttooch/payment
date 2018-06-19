@@ -157,7 +157,7 @@ func (app *MicroCharge) Handle(data map[string]interface{}) (interface{}, error)
 		queryTimes --
 		succResult := 0
 		que := new(*query.OrderQuery)
-		que.InitBaseConfig(&BaseConfig{
+		que.InitBaseConfig(&query.BaseConfig{
 			AppId:    appid,
 			SubAppId: subAppId,
 			MchId:    mchId,
@@ -179,7 +179,7 @@ func (app *MicroCharge) Handle(data map[string]interface{}) (interface{}, error)
 
 	//④、确认失败，则撤销订单
 	rev := new(*reverse.OrderReverse)
-	rev.InitBaseConfig(&BaseConfig{
+	rev.InitBaseConfig(&reverse.BaseConfig{
 		AppId:    appid,
 		SubAppId: subAppId,
 		MchId:    mchId,
