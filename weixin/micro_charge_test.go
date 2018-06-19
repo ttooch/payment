@@ -28,11 +28,11 @@ func TestMicroPayWithPosConnectTimeout(t *testing.T) {
 	ret, err := app.Handle(map[string]interface{}{
 		"device_info":      "013467007045764",
 		"body":             "image形象店-深圳腾大- QQ公仔",
-		"out_trade_no":     "2018061511000063153",
+		"out_trade_no":     "2018061510564487162",
 		"fee_type":         "CNY",
+		"spbill_create_ip": "123.12.12.123",
 		"total_fee":        1,
-		"spbill_create_ip": "127.0.0.1",
-		"auth_code":        "134628524482100179",
+		"auth_code":        "134514384573219829",
 	})
 
 	fmt.Printf("%+v", ret)
