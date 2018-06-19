@@ -3,7 +3,6 @@ package weixin
 import (
 	"fmt"
 	"testing"
-	"time"
 )
 
 func TestHandle(t *testing.T) {
@@ -27,7 +26,6 @@ func TestHandle(t *testing.T) {
 		Md5Key:    "057177a8459352933f755c535b0ab0ef",
 		SignType:  "MD5",
 		NotifyUrl: "http://api.store.udian.me/v1/payment/notify",
-		TimeStart: time.Now().Format("20060102150405"),
 	})
 
 	ret, err := app.Handle(map[string]interface{}{

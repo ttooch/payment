@@ -2,7 +2,7 @@
  * @author dengmeiyu
  * @since 20180618
  */
-package weixin
+package query
 import (
 	"fmt"
 	"testing"

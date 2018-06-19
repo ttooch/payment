@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"encoding/json"
 	"time"
+	"github.com/ttooch/payment/query"
+	"github.com/ttooch/payment/reverse"
 )
 
 type MicroCharge struct {
@@ -16,10 +18,6 @@ type MicroCharge struct {
 	*PayConf
 	BaseCharge
 }
-
-const SYSTEMERROR = "SYSTEMERROR"
-const BANKERROR = "BANKERROR"
-const USERPAYING = "USERPAYING"
 
 type PayConf struct {
 	Openid         string    `xml:"openid,omitempty" json:"openid,omitempty"`
@@ -158,7 +156,7 @@ func (app *MicroCharge) Handle(data map[string]interface{}) (interface{}, error)
 	for {
 		queryTimes --
 		succResult := 0
-		que := new(OrderQuery)
+		que := new(*query.OrderQuery)
 		que.InitBaseConfig(&BaseConfig{
 			AppId:    appid,
 			SubAppId: subAppId,
@@ -180,7 +178,7 @@ func (app *MicroCharge) Handle(data map[string]interface{}) (interface{}, error)
 	}
 
 	//④、确认失败，则撤销订单
-	rev := new(OrderReverse)
+	rev := new(*reverse.OrderReverse)
 	rev.InitBaseConfig(&BaseConfig{
 		AppId:    appid,
 		SubAppId: subAppId,
