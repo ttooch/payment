@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"github.com/ttooch/payment/query"
 	"time"
+	"errors"
 )
 
 type MicroCharge struct {
@@ -124,7 +125,7 @@ func (app *MicroCharge) Handle(data map[string]interface{}) (interface{}, error)
 	//②、接口调用成功，明确返回调用失败
 	if result.ReturnCode == "SUCCESS" && result.ResultCode == "FAIL" &&
 		result.ErrCode != "USERPAYING" && result.ErrCode != "SYSTEMERROR" {
-		return false, nil
+		return false, errors.New("扫码支付失败")
 	}
 
 	//③、确认支付是否成功
