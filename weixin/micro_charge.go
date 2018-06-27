@@ -158,7 +158,7 @@ func (app *MicroCharge) Handle(data map[string]interface{}) (interface{}, error)
 			} else if (succResult == 1) { //查询成功
 				return queryResult, nil
 			} else { //订单交易失败
-				return false, nil
+				return false, errors.New("订单交易失败")
 			}
 		}
 
@@ -180,5 +180,5 @@ func (app *MicroCharge) Handle(data map[string]interface{}) (interface{}, error)
 		fmt.Println("撤销单失败！")
 	}
 
-	return false, nil
+	return false, errors.New("撤销单失败！")
 }
