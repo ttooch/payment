@@ -106,9 +106,8 @@ func (tra *AliTrade) Handle(conf map[string]interface{}) (interface{}, error) {
 
 func (tra *AliTrade) RetData(ret []byte) (re *AliPayTradePayResponse, err error) {
 
-	result := new(AliPayTradePayResponse)
-	xml.Unmarshal(ret, result)
-	return result, nil
+	json.Unmarshal(ret, re)
+	return re, nil
 
 }
 
