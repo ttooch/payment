@@ -12,7 +12,6 @@ import (
 	"crypto/sha256"
 	"crypto/rand"
 	"crypto"
-	"git.coding.net/ttouch_/util"
 	"github.com/smartwalle/alipay/encoding"
 )
 
@@ -34,9 +33,9 @@ func CurrentTimeStampMS() int64 {
 }
 
 //rsa2加密
-func RsaEncrypt(origData []byte) ([]byte, error) {
+func RsaEncrypt(origData []byte,privateKey string) ([]byte, error) {
 	//私钥切片处理
-	key :=encoding.ParsePrivateKey(util.RSA_PRIVATE_KEY)
+	key :=encoding.ParsePrivateKey(privateKey)
 
 	block, _ := pem.Decode([]byte(key))//PiravteKeyData为私钥文件的字节数组
 	if block == nil {

@@ -14,9 +14,8 @@ import (
 	"sort"
 	"fmt"
 	"encoding/base64"
-	"github.com/smartwalle/alipay/encoding"
-	"crypto"
 	"strings"
+	"errors"
 )
 const (
 	ALITRADE = "https://openapi.alipay.com/gateway.do"
@@ -93,25 +92,29 @@ type TradeReturn struct {
 
 
 
-func (tra *AliTrade) Handle(conf map[string]interface{}) (interface{}, error) {
+func (tra *AliTrade) Handle(conf map[string]interface{},privateKey string) (*AliPayTradePayResponse, error) {
 	err := tra.BuildData(conf)
 	if err != nil {
 		return nil, err
 	}
-	ret, err := tra.sendReq(ALITRADE,tra)
-	fmt.Println("===========")
+	ret, err := tra.sendReq(ALITRADE,tra,privateKey)
 	fmt.Println(string(ret))
 	return tra.RetData(ret)
 }
 
 func (tra *AliTrade) RetData(ret []byte) (re *AliPayTradePayResponse, err error) {
 
-	json.Unmarshal(ret, re)
-	return re, nil
+	result := new(AliPayTradePayResponse)
+	json.Unmarshal(ret, result)
+
+	if result.AliPayTradePay.Code != "10000" && result.AliPayTradePay.Msg != "Success"{
+		return result, errors.New("支付宝条码支付失败："+result.AliPayTradePay.SubCode)
+	}
+	return result, nil
 
 }
 
-func sign(m url.Values) string {
+func sign(m url.Values,privateKey string) string {
 	//对url.values进行排序
 	if m == nil {
 		m = make(url.Values, 0)
@@ -128,14 +131,14 @@ func sign(m url.Values) string {
 	var src = strings.Join(pList, "&")
 	fmt.Println(string(src))
 	//对排序后的数据进行rsa2加密，获得sign
-	b,_ := helper.RsaEncrypt([]byte(src))
+	b,_ := helper.RsaEncrypt([]byte(src),privateKey)
 
 	fmt.Println("加密：",b)
 	fmt.Println("base加密：",base64.StdEncoding.EncodeToString(b))
 	return base64.StdEncoding.EncodeToString(b)
 }
 
-func (tra *AliTrade) sendReq(reqUrl string, pay interface{}) (b []byte, err error) {
+func (tra *AliTrade) sendReq(reqUrl string, pay interface{},privateKey string) (b []byte, err error) {
 
 	client := helper.NewHttpClient()
 	var data = url.Values{}
@@ -143,11 +146,11 @@ func (tra *AliTrade) sendReq(reqUrl string, pay interface{}) (b []byte, err erro
 	data.Add("app_id", tra.AppId)
 	data.Add("method", tra.Method)
 	data.Add("charset", tra.Charset)
-	data.Add("sign_type", "RSA2")
+	data.Add("sign_type", tra.SignType)
 	data.Add("timestamp", tra.TimeStamp)
-	data.Add("version", "1.0")
+	data.Add("version", tra.Version)
 	data.Add("biz_content",tra.BizContent)
-	data.Add("sign", sign(data))
+	data.Add("sign", sign(data,privateKey))
 
 	httpResp, err := client.PostForm(reqUrl,data)
 
@@ -162,28 +165,6 @@ func (tra *AliTrade) sendReq(reqUrl string, pay interface{}) (b []byte, err erro
 
 }
 
-func signWithPKCS1v15(param url.Values, privateKey []byte, hash crypto.Hash) (s string, err error) {
-	if param == nil {
-		param = make(url.Values, 0)
-	}
-
-	var pList = make([]string, 0, 0)
-	for key := range param {
-		var value = strings.TrimSpace(param.Get(key))
-		if len(value) > 0 {
-			pList = append(pList, key+"="+value)
-		}
-	}
-	sort.Strings(pList)
-	var src = strings.Join(pList, "&")
-	fmt.Println(string(src))
-	sig, err := encoding.SignPKCS1v15([]byte(src), privateKey, hash)
-	if err != nil {
-		return "", err
-	}
-	s = base64.StdEncoding.EncodeToString(sig)
-	return s, nil
-}
 
 func (tra *AliTrade) BuildData(conf map[string]interface{}) error {
 
@@ -199,7 +180,10 @@ func (tra *AliTrade) BuildData(conf map[string]interface{}) error {
 func (tra *AliTrade) InitBaseConfig(config *BaseAliConfig) {
 
 	config.TimeStamp = time.Now().Format("2006-01-02 15:04:05")
-
+	config.Method = "alipay.trade.pay"
+	config.Charset = "utf-8"
+	config.Version = "1.0"
+	config.SignType = "RSA2"
 	tra.BaseAliConfig = config
 }
 
