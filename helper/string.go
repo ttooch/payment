@@ -13,6 +13,7 @@ import (
 	"crypto/rand"
 	"crypto"
 	"github.com/smartwalle/alipay/encoding"
+	"encoding/base64"
 )
 
 func Md5(s string) string {
@@ -58,3 +59,34 @@ func RsaEncrypt(origData []byte,privateKey string) ([]byte, error) {
 	return signature2,err
 }
 
+
+func RSAVerify(src[]byte, sign, publicKey string) error {
+
+	signBytes, err := base64.StdEncoding.DecodeString(sign)
+	if err!= nil  {
+		return err
+	}
+	//支付宝公钥做切片处理
+	key := encoding.ParsePublicKey(publicKey)
+	block, _ := pem.Decode([]byte(key))//PublicKeyData为私钥文件的字节数组
+	if block == nil {
+		fmt.Println("Public block空")
+		return nil
+	}
+
+	var pubI interface{}
+	pubI, err = x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return err
+	}
+	h2 := sha256.New()
+	h2.Write(src)
+	hashed := h2.Sum(nil)
+	var pub = pubI.(*rsa.PublicKey)
+	err = rsa.VerifyPKCS1v15(pub,crypto.SHA256, hashed, signBytes) //验签
+
+	if err != nil {
+       return err
+	}
+	return nil
+}

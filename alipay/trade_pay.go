@@ -9,70 +9,48 @@ import (
 	"github.com/ttooch/payment/helper"
 	"io/ioutil"
 	"encoding/json"
-	"time"
 	"net/url"
-	"sort"
 	"fmt"
-	"encoding/base64"
-	"strings"
 	"errors"
+	"time"
 )
-const (
-	ALITRADE = "https://openapi.alipay.com/gateway.do"
-	SUCCESS     = "SUCCESS"
-	FAIL     = "FAIL"
-)
-
-type BaseAliConfig struct {
-	AppId          string        `xml:"app_id" json:"app_id"`
-	Method         string        `xml:"method" json:"method"`
-	SignType       string        `xml:"sign_type" json:"sign_type"`
-	Sign           string        `xml:"sign" json:"sign"`
-	TimeStamp      string        `xml:"time_stamp" json:"time_stamp"`
-	Version        string        `xml:"version" json:"version"`
-	BizContent     string        `xml:"-" json:"-"`
-	Charset         string        `xml:"-" json:"-"`
-	NotifyUrl      string        `xml:"-" json:"-"`
-	AppAuthToken   string        `xml:"-" json:"-"`
-}
 
 type AliPayTradePayResponse struct {
 	AliPayTradePay struct {
-		Code                string           `json:"code"`
-		Msg                 string           `json:"msg"`
-		SubCode             string           `json:"sub_code"`
-		SubMsg              string           `json:"sub_msg"`
-		BuyerLogonId        string           `json:"buyer_logon_id"`           // 买家支付宝账号
-		BuyerPayAmount      string           `json:"buyer_pay_amount"`         // 买家实付金额，单位为元，两位小数。
-		BuyerUserId         string           `json:"buyer_user_id"`            // 买家在支付宝的用户id
-		CardBalance         string           `json:"card_balance"`             // 支付宝卡余额
-		DiscountGoodsDetail string           `json:"discount_goods_detail"`    // 本次交易支付所使用的单品券优惠的商品优惠信息
-		GmtPayment          string           `json:"gmt_payment"`
-		InvoiceAmount       string           `json:"invoice_amount"`                // 交易中用户支付的可开具发票的金额，单位为元，两位小数。
-		OutTradeNo          string           `json:"out_trade_no"`                  // 创建交易传入的商户订单号
-		TradeNo             string           `json:"trade_no"`                      // 支付宝交易号
-		PointAmount         string           `json:"point_amount"`                  // 积分支付的金额，单位为元，两位小数。
-		ReceiptAmount       string           `json:"receipt_amount"`                // 实收金额，单位为元，两位小数
-		StoreName           string           `json:"store_name"`                    // 发生支付交易的商户门店名称
-		TotalAmount         string           `json:"total_amount"`                  // 发该笔退款所对应的交易的订单金额
+		Code                string `json:"code"`
+		Msg                 string `json:"msg"`
+		SubCode             string `json:"sub_code"`
+		SubMsg              string `json:"sub_msg"`
+		BuyerLogonId        string `json:"buyer_logon_id"`        // 买家支付宝账号
+		BuyerPayAmount      string `json:"buyer_pay_amount"`      // 买家实付金额，单位为元，两位小数。
+		BuyerUserId         string `json:"buyer_user_id"`         // 买家在支付宝的用户id
+		CardBalance         string `json:"card_balance"`          // 支付宝卡余额
+		DiscountGoodsDetail string `json:"discount_goods_detail"` // 本次交易支付所使用的单品券优惠的商品优惠信息
+		GmtPayment          string `json:"gmt_payment"`
+		InvoiceAmount       string `json:"invoice_amount"` // 交易中用户支付的可开具发票的金额，单位为元，两位小数。
+		OutTradeNo          string `json:"out_trade_no"`   // 创建交易传入的商户订单号
+		TradeNo             string `json:"trade_no"`       // 支付宝交易号
+		PointAmount         string `json:"point_amount"`   // 积分支付的金额，单位为元，两位小数。
+		ReceiptAmount       string `json:"receipt_amount"` // 实收金额，单位为元，两位小数
+		StoreName           string `json:"store_name"`     // 发生支付交易的商户门店名称
+		TotalAmount         string `json:"total_amount"`   // 发该笔退款所对应的交易的订单金额
 	} `json:"alipay_trade_pay_response"`
 	Sign string `json:"sign"`
 }
 
 type AliConf struct {
-	OutTradeNo   string `xml:"out_trade_no" json:"out_trade_no"`
-	Scene        string `xml:"scene" json:"scene"`
-	AuthCode     string `xml:"auth_code" json:"auth_code"`
-	ProductCode  string `xml:"product_code,omitempty" json:"product_code,omitempty"`
-	Subject      string `xml:"subject" json:"subject"`
-	BuyerId      string `xml:"buyer_id" json:"buyer_id"`
-	SellerId     string `xml:"seller_id" json:"seller_id"`
-	TotalAmount  string `xml:"total_amount" json:"total_amount"`
-	TransCurrency string `xml:"trans_currency,omitempty" json:"trans_currency,omitempty"`
-	SettleCurrency string `xml:"settle_currency,omitempty" json:"settle_currency,omitempty"`
+	OutTradeNo         string `xml:"out_trade_no" json:"out_trade_no"`
+	Scene              string `xml:"scene" json:"scene"`
+	AuthCode           string `xml:"auth_code" json:"auth_code"`
+	ProductCode        string `xml:"product_code,omitempty" json:"product_code,omitempty"`
+	Subject            string `xml:"subject" json:"subject"`
+	BuyerId            string `xml:"buyer_id" json:"buyer_id"`
+	SellerId           string `xml:"seller_id" json:"seller_id"`
+	TotalAmount        string `xml:"total_amount" json:"total_amount"`
+	TransCurrency      string `xml:"trans_currency,omitempty" json:"trans_currency,omitempty"`
+	SettleCurrency     string `xml:"settle_currency,omitempty" json:"settle_currency,omitempty"`
 	DiscountableAmount string `xml:"discountable_amount,omitempty" json:"discountable_amount,omitempty"`
-	Body string `xml:"body" json:"body"`
-
+	Body               string `xml:"body" json:"body"`
 }
 
 type AliTrade struct {
@@ -81,64 +59,42 @@ type AliTrade struct {
 	*AliConf
 }
 
+func (tra *AliTrade) Handle(conf map[string]interface{}, privateKey string, aliPublicKey string) (*AliPayTradePayResponse, error) {
 
-type TradeReturn struct {
-	TradeNo string `xml:"trade_no" json:"trade_no"`
-	OutTradeNo string `xml:"out_trade_no" json:"out_trade_no"`
-	BuyerLogonId string `xml:"buyer_logon_id" json:"buyer_logon_id"`
-	TotalAmount string `xml:"total_amount" json:"total_amount"`
-	TransCurrency string `xml:"trans_currency" json:"trans_currency"`
-}
-
-
-
-func (tra *AliTrade) Handle(conf map[string]interface{},privateKey string) (*AliPayTradePayResponse, error) {
 	err := tra.BuildData(conf)
 	if err != nil {
 		return nil, err
 	}
-	ret, err := tra.sendReq(ALITRADE,tra,privateKey)
+	ret, err := tra.sendReq(ALITRADE, tra, privateKey)
+	if err != nil {
+		return nil, err
+	}
 	fmt.Println(string(ret))
-	return tra.RetData(ret)
+	return tra.RetData(ret, aliPublicKey)
 }
 
-func (tra *AliTrade) RetData(ret []byte) (re *AliPayTradePayResponse, err error) {
+func (tra *AliTrade) RetData(ret []byte, aliPublicKey string) (re *AliPayTradePayResponse, err error) {
 
 	result := new(AliPayTradePayResponse)
 	json.Unmarshal(ret, result)
 
-	if result.AliPayTradePay.Code != "10000" && result.AliPayTradePay.Msg != "Success"{
-		return result, errors.New("支付宝条码支付失败："+result.AliPayTradePay.SubCode)
+	b, _ := json.Marshal(result.AliPayTradePay)
+
+	//TODO 调用之后验签 验签方法还要改一下
+	err = helper.RSAVerify([]byte(b), result.Sign, aliPublicKey)
+	if err != nil {
+		fmt.Println(err.Error())
+		//return nil ,err
+	}
+
+	if result.AliPayTradePay.Code != "10000" && result.AliPayTradePay.Msg != "Success" {
+		return result, errors.New("支付宝退款失败：" + result.AliPayTradePay.SubMsg)
 	}
 	return result, nil
 
 }
 
-func sign(m url.Values,privateKey string) string {
-	//对url.values进行排序
-	if m == nil {
-		m = make(url.Values, 0)
-	}
-
-	var pList = make([]string, 0, 0)
-	for key := range m {
-		var value = strings.TrimSpace(m.Get(key))
-		if len(value) > 0 {
-			pList = append(pList, key+"="+value)
-		}
-	}
-	sort.Strings(pList)
-	var src = strings.Join(pList, "&")
-	fmt.Println(string(src))
-	//对排序后的数据进行rsa2加密，获得sign
-	b,_ := helper.RsaEncrypt([]byte(src),privateKey)
-
-	fmt.Println("加密：",b)
-	fmt.Println("base加密：",base64.StdEncoding.EncodeToString(b))
-	return base64.StdEncoding.EncodeToString(b)
-}
-
-func (tra *AliTrade) sendReq(reqUrl string, pay interface{},privateKey string) (b []byte, err error) {
+func (tra *AliTrade) sendReq(reqUrl string, pay interface{}, privateKey string) (b []byte, err error) {
 
 	client := helper.NewHttpClient()
 	var data = url.Values{}
@@ -149,10 +105,10 @@ func (tra *AliTrade) sendReq(reqUrl string, pay interface{},privateKey string) (
 	data.Add("sign_type", tra.SignType)
 	data.Add("timestamp", tra.TimeStamp)
 	data.Add("version", tra.Version)
-	data.Add("biz_content",tra.BizContent)
-	data.Add("sign", sign(data,privateKey))
+	data.Add("biz_content", tra.BizContent)
+	data.Add("sign", tra.RSASign(data, privateKey))
 
-	httpResp, err := client.PostForm(reqUrl,data)
+	httpResp, err := client.PostForm(reqUrl, data)
 
 	if err != nil {
 		return
@@ -164,7 +120,6 @@ func (tra *AliTrade) sendReq(reqUrl string, pay interface{},privateKey string) (
 	return
 
 }
-
 
 func (tra *AliTrade) BuildData(conf map[string]interface{}) error {
 
@@ -186,5 +141,3 @@ func (tra *AliTrade) InitBaseConfig(config *BaseAliConfig) {
 	config.SignType = "RSA2"
 	tra.BaseAliConfig = config
 }
-
-
