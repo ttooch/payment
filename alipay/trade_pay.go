@@ -111,9 +111,11 @@ func (tra *AliTrade) RetData(ret []byte, privateKey string,aliPublicKey string) 
 
 			if ret.AliPayTradeQuery.TradeStatus =="TRADE_SUCCESS" {
 				return aliTradeRes, nil
+			} else {
+				return aliTradeRes, errors.New("支付宝条码支付失败：" + ret.AliPayTradeQuery.TradeStatus)
 			}
 		}
-		return aliTradeRes, errors.New("支付宝条码支付失败：" + result.AliPayTradePay.SubMsg)
+		return aliTradeRes, errors.New("支付宝条码支付失败：" + result.AliPayTradePay.Msg + result.AliPayTradePay.SubMsg)
 	}
 	return aliTradeRes, nil
 
