@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	ALITRADE = "https://openapi.alipay.com/gateway.do"
+	ALITRADE = "https://openapi.alipay.com/gateway.do?charset=utf-8"
 	SUCCESS     = "SUCCESS"
 	FAIL     = "FAIL"
 )
