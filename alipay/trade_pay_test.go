@@ -20,13 +20,13 @@ func TestAliTrade(t *testing.T) {
 	})
 
 	ret, err := app.Handle(map[string]interface{}{
-		"body":           "可乐",
-		"out_trade_no":   "2018061510564487120",
+		"body":           "U点便利(融汇小店)消费",
+		"out_trade_no":   "0001_2018062107025369530",
 		"trans_currency": "CNY",
 		"total_amount":   "0.01",
-		"auth_code":      "286462016369873108",
+		"auth_code":      "281924361821329333",
 		"scene":          "bar_code",
-		"subject":        "可乐",
+		"subject":        "U点便利(融汇小店)消费",
 
 	},privateKey,aliPublicKey)
 

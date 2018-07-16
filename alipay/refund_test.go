@@ -21,7 +21,7 @@ func TestAliRefund(t *testing.T) {
 	})
 
 	ret, err := app.Handle(map[string]interface{}{
-		"out_trade_no":    "2018061510564487120",
+		"out_trade_no":    "0001_2018062107025369530",
 		"refund_currency": "CNY",
 		"refund_amount":   "0.01",
 		//"trade_no":        "2018071621001004530512984285",

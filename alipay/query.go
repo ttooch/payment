@@ -143,7 +143,7 @@ func (tra *AliQuery) InitBaseConfig(config *BaseAliConfig) {
 
 	config.TimeStamp = time.Now().Format("2006-01-02 15:04:05")
 	config.Method = "alipay.trade.query"
-	config.Charset = "utf-8"
+	config.Charset = "UTF-8"
 	config.Version = "1.0"
 	config.SignType = "RSA2"
 	tra.BaseAliConfig = config
