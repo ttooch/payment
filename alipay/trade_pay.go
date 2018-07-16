@@ -16,28 +16,28 @@ import (
 )
 
 type AliPayTradePayResponse struct {
-	AliPayTradePay struct {
-		Code                string `json:"code"`
-		Msg                 string `json:"msg"`
-		SubCode             string `json:"sub_code"`
-		SubMsg              string `json:"sub_msg"`
-		BuyerLogonId        string `json:"buyer_logon_id"`        // 买家支付宝账号
-		BuyerPayAmount      string `json:"buyer_pay_amount"`      // 买家实付金额，单位为元，两位小数。
-		BuyerUserId         string `json:"buyer_user_id"`         // 买家在支付宝的用户id
-		CardBalance         string `json:"card_balance"`          // 支付宝卡余额
-		DiscountGoodsDetail string `json:"discount_goods_detail"` // 本次交易支付所使用的单品券优惠的商品优惠信息
-		GmtPayment          string `json:"gmt_payment"`
-		InvoiceAmount       string `json:"invoice_amount"` // 交易中用户支付的可开具发票的金额，单位为元，两位小数。
-		OutTradeNo          string `json:"out_trade_no"`   // 创建交易传入的商户订单号
-		TradeNo             string `json:"trade_no"`       // 支付宝交易号
-		PointAmount         string `json:"point_amount"`   // 积分支付的金额，单位为元，两位小数。
-		ReceiptAmount       string `json:"receipt_amount"` // 实收金额，单位为元，两位小数
-		StoreName           string `json:"store_name"`     // 发生支付交易的商户门店名称
-		TotalAmount         string `json:"total_amount"`   // 发该笔退款所对应的交易的订单金额
-	} `json:"alipay_trade_pay_response"`
+	AliPayTradePay AliPayTradePay `json:"alipay_trade_pay_response"`
 	Sign string `json:"sign"`
 }
-
+type AliPayTradePay struct {
+	Code                string `json:"code"`
+	Msg                 string `json:"msg"`
+	SubCode             string `json:"sub_code"`
+	SubMsg              string `json:"sub_msg"`
+	BuyerLogonId        string `json:"buyer_logon_id"`        // 买家支付宝账号
+	BuyerPayAmount      string `json:"buyer_pay_amount"`      // 买家实付金额，单位为元，两位小数。
+	BuyerUserId         string `json:"buyer_user_id"`         // 买家在支付宝的用户id
+	CardBalance         string `json:"card_balance"`          // 支付宝卡余额
+	DiscountGoodsDetail string `json:"discount_goods_detail"` // 本次交易支付所使用的单品券优惠的商品优惠信息
+	GmtPayment          string `json:"gmt_payment"`
+	InvoiceAmount       string `json:"invoice_amount"` // 交易中用户支付的可开具发票的金额，单位为元，两位小数。
+	OutTradeNo          string `json:"out_trade_no"`   // 创建交易传入的商户订单号
+	TradeNo             string `json:"trade_no"`       // 支付宝交易号
+	PointAmount         string `json:"point_amount"`   // 积分支付的金额，单位为元，两位小数。
+	ReceiptAmount       string `json:"receipt_amount"` // 实收金额，单位为元，两位小数
+	StoreName           string `json:"store_name"`     // 发生支付交易的商户门店名称
+	TotalAmount         string `json:"total_amount"`   // 发该笔退款所对应的交易的订单金额
+}
 type AliConf struct {
 	OutTradeNo         string `xml:"out_trade_no" json:"out_trade_no"`
 	Scene              string `xml:"scene" json:"scene"`
@@ -59,7 +59,7 @@ type AliTrade struct {
 	*AliConf
 }
 
-func (tra *AliTrade) Handle(conf map[string]interface{}, privateKey string, aliPublicKey string) (*AliPayTradePayResponse, error) {
+func (tra *AliTrade) Handle(conf map[string]interface{}, privateKey string, aliPublicKey string) (*AliPayTradePay, error) {
 
 	err := tra.BuildData(conf)
 	if err != nil {
@@ -73,7 +73,7 @@ func (tra *AliTrade) Handle(conf map[string]interface{}, privateKey string, aliP
 	return tra.RetData(ret, privateKey, aliPublicKey)
 }
 
-func (tra *AliTrade) RetData(ret []byte, privateKey string,aliPublicKey string) (re *AliPayTradePayResponse, err error) {
+func (tra *AliTrade) RetData(ret []byte, privateKey string,aliPublicKey string) (re *AliPayTradePay, err error) {
 
 	result := new(AliPayTradePayResponse)
 	json.Unmarshal(ret, result)
@@ -86,7 +86,10 @@ func (tra *AliTrade) RetData(ret []byte, privateKey string,aliPublicKey string) 
 		fmt.Println(err.Error())
 		//return nil ,err
 	}
-	
+	var aliTradeRes *AliPayTradePay
+	aliTradeRes = &result.AliPayTradePay
+
+	//支付后做查询
 	if result.AliPayTradePay.Code != "10000" && result.AliPayTradePay.Msg != "Success" {
 		if result.AliPayTradePay.Code == "10003" {
 
@@ -103,16 +106,16 @@ func (tra *AliTrade) RetData(ret []byte, privateKey string,aliPublicKey string) 
 			},privateKey,aliPublicKey)
 
 			if err != nil {
-				return result, errors.New("调用支付宝查询接口失败：" + err.Error())
+				return aliTradeRes, errors.New("调用支付宝查询接口失败：" + err.Error())
 			}
 
 			if ret.AliPayTradeQuery.TradeStatus =="TRADE_SUCCESS" {
-				return result, nil
+				return aliTradeRes, nil
 			}
 		}
-		return result, errors.New("支付宝条码支付失败：" + result.AliPayTradePay.SubMsg)
+		return aliTradeRes, errors.New("支付宝条码支付失败：" + result.AliPayTradePay.SubMsg)
 	}
-	return result, nil
+	return aliTradeRes, nil
 
 }
 
