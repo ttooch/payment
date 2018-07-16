@@ -30,6 +30,24 @@ type AliRefundConf struct {
 
 }
 
+type AliPayTradeRefundResponse struct {
+	AliPayTradeRefund struct {
+		Code                 string              `json:"code"`
+		Msg                  string              `json:"msg"`
+		SubCode              string              `json:"sub_code"`
+		SubMsg               string              `json:"sub_msg"`
+		TradeNo              string              `json:"trade_no"`                          // 支付宝交易号
+		OutTradeNo           string              `json:"out_trade_no"`                      // 商户订单号
+		BuyerLogonId         string              `json:"buyer_logon_id"`                    // 用户的登录id
+		BuyerUserId          string              `json:"buyer_user_id"`                     // 买家在支付宝的用户id
+		FundChange           string              `json:"fund_change"`                       // 本次退款是否发生了资金变化
+		RefundFee            string              `json:"refund_fee"`                        // 退款总金额
+		GmtRefundPay         string              `json:"gmt_refund_pay"`                    // 退款支付时间
+		StoreName            string              `json:"store_name"`                        // 交易在支付时候的门店名称
+	} `json:"alipay_trade_refund_response"`
+	Sign string `json:"sign"`
+}
+
 func (tra *AliRefund) Handle(conf map[string]interface{},privateKey string, aliPublicKey string) (string, error) {
 
 	err := tra.BuildData(conf)
@@ -46,10 +64,10 @@ func (tra *AliRefund) Handle(conf map[string]interface{},privateKey string, aliP
 
 func (tra *AliRefund) RetData(ret []byte,aliPublicKey string) (re string, err error) {
 
-	result := new(AliPayTradePayResponse)
+	result := new(AliPayTradeRefundResponse)
 	json.Unmarshal(ret, result)
 
-	b,_:=json.Marshal(result.AliPayTradePay)
+	b,_:=json.Marshal(result.AliPayTradeRefund)
 
 	//TODO 调用之后验签 验签方法还要改一下
 	err = helper.RSAVerify([]byte(b),result.Sign, aliPublicKey)
@@ -58,10 +76,10 @@ func (tra *AliRefund) RetData(ret []byte,aliPublicKey string) (re string, err er
 		//return nil ,err
 	}
 
-	if result.AliPayTradePay.Code != "10000" && result.AliPayTradePay.Msg != "Success"{
-		return "", errors.New("支付宝退款失败："+result.AliPayTradePay.SubMsg)
+	if result.AliPayTradeRefund.Code != "10000" && result.AliPayTradeRefund.Msg != "Success"{
+		return "", errors.New("支付宝退款失败："+result.AliPayTradeRefund.SubMsg)
 	}
-	return result.AliPayTradePay.TradeNo, nil
+	return result.AliPayTradeRefund.TradeNo, nil
 
 }
 

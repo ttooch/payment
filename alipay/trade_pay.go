@@ -70,10 +70,10 @@ func (tra *AliTrade) Handle(conf map[string]interface{}, privateKey string, aliP
 		return nil, err
 	}
 	fmt.Println(string(ret))
-	return tra.RetData(ret, aliPublicKey)
+	return tra.RetData(ret, privateKey, aliPublicKey)
 }
 
-func (tra *AliTrade) RetData(ret []byte, aliPublicKey string) (re *AliPayTradePayResponse, err error) {
+func (tra *AliTrade) RetData(ret []byte, privateKey string,aliPublicKey string) (re *AliPayTradePayResponse, err error) {
 
 	result := new(AliPayTradePayResponse)
 	json.Unmarshal(ret, result)
@@ -86,8 +86,30 @@ func (tra *AliTrade) RetData(ret []byte, aliPublicKey string) (re *AliPayTradePa
 		fmt.Println(err.Error())
 		//return nil ,err
 	}
-
+	
 	if result.AliPayTradePay.Code != "10000" && result.AliPayTradePay.Msg != "Success" {
+		if result.AliPayTradePay.Code == "10003" {
+
+			app := new(AliQuery)
+
+			app.InitBaseConfig(&BaseAliConfig{
+				AppId:    tra.AppId,
+				AppAuthToken:tra.AppAuthToken,
+			})
+
+			ret, err := app.Handle(map[string]interface{}{
+				"out_trade_no":   result.AliPayTradePay.OutTradeNo,
+
+			},privateKey,aliPublicKey)
+
+			if err != nil {
+				return result, errors.New("调用支付宝查询接口失败：" + err.Error())
+			}
+
+			if ret.AliPayTradeQuery.TradeStatus =="TRADE_SUCCESS" {
+				return result, nil
+			}
+		}
 		return result, errors.New("支付宝条码支付失败：" + result.AliPayTradePay.SubMsg)
 	}
 	return result, nil
