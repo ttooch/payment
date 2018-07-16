@@ -30,21 +30,21 @@ type AliRefundConf struct {
 
 }
 
-func (tra *AliRefund) Handle(conf map[string]interface{},privateKey string, aliPublicKey string) (*AliPayTradePayResponse, error) {
+func (tra *AliRefund) Handle(conf map[string]interface{},privateKey string, aliPublicKey string) (string, error) {
 
 	err := tra.BuildData(conf)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	ret, err := tra.sendReq(ALITRADE,tra,privateKey)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	fmt.Println(string(ret))
 	return tra.RetData(ret, aliPublicKey)
 }
 
-func (tra *AliRefund) RetData(ret []byte,aliPublicKey string) (re *AliPayTradePayResponse, err error) {
+func (tra *AliRefund) RetData(ret []byte,aliPublicKey string) (re string, err error) {
 
 	result := new(AliPayTradePayResponse)
 	json.Unmarshal(ret, result)
@@ -59,9 +59,9 @@ func (tra *AliRefund) RetData(ret []byte,aliPublicKey string) (re *AliPayTradePa
 	}
 
 	if result.AliPayTradePay.Code != "10000" && result.AliPayTradePay.Msg != "Success"{
-		return result, errors.New("支付宝条码支付失败："+result.AliPayTradePay.SubMsg)
+		return "", errors.New("支付宝退款失败："+result.AliPayTradePay.SubMsg)
 	}
-	return result, nil
+	return result.AliPayTradePay.TradeNo, nil
 
 }
 
