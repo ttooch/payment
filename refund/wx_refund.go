@@ -83,7 +83,11 @@ func (wx *WxRefund) RetData(ret []byte) (refundId string, err error) {
 		refundId = result.RefundId
 
 	} else if result.ReturnCode == FAIL {
-		return refundId, errors.New(result.ReturnMsg)
+		if result.ErrCode == "NOTENOUGH" {
+			return refundId, errors.New(result.ErrCode)
+		}else {
+			return refundId, errors.New(result.ReturnMsg)
+		}
 	}else {
 		return refundId, errors.New(result.ErrCodeDes)
 	}
