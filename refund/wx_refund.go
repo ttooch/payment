@@ -78,17 +78,20 @@ func (wx *WxRefund) RetData(ret []byte) (refundId string, err error) {
 
 	xml.Unmarshal(ret, &result)
 
-	if result.ReturnCode == SUCCESS && result.ResultCode == SUCCESS {
+	if result.ReturnCode == SUCCESS {
 
-		refundId = result.RefundId
+		if result.ResultCode == SUCCESS {
+			refundId = result.RefundId
 
-	} else if result.ReturnCode == FAIL {
-		if result.ErrCode == "NOTENOUGH" {
-			return refundId, errors.New(result.ErrCode)
-		}else {
-			return refundId, errors.New(result.ReturnMsg)
+		} else if result.ResultCode == FAIL {
+			if result.ErrCode == "NOTENOUGH" {
+
+				return refundId, errors.New(result.ErrCode)
+			}
 		}
-	}else {
+	} else if result.ReturnCode == FAIL {
+		return refundId, errors.New(result.ReturnMsg)
+	} else {
 		return refundId, errors.New(result.ErrCodeDes)
 	}
 
