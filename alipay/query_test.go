@@ -16,12 +16,12 @@ func TestAliQuery_Handle(t *testing.T) {
 	app := new(AliQuery)
 
 	app.InitBaseConfig(&BaseAliConfig{
-		AppId:    "2018010401585047",
-		AppAuthToken:"201801BB635d7c6ab47a459ba579f876d3736X68",
+		AppId:    "2017122701286469",
+		AppAuthToken:"201801BBe10810a6828f40328bf24cabdc748X87",
 	})
 
 	ret, err := app.Handle(map[string]interface{}{
-		"out_trade_no":    "2018061510564487120",
+		"out_trade_no":    "0001_2018062107025369530",
 
 	},privateKey,aliPublicKey)
 

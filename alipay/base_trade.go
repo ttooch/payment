@@ -29,7 +29,7 @@ type BaseAliConfig struct {
 	BizContent     string        `xml:"-" json:"-"`
 	Charset         string        `xml:"-" json:"-"`
 	NotifyUrl      string        `xml:"-" json:"-"`
-	AppAuthToken   string        `xml:"-" json:"-"`
+	AppAuthToken   string        `xml:"app_auth_token" json:"app_auth_token"`
 }
 
 func (base *BaseAliConfig) RSASign(m url.Values,privateKey string) string {

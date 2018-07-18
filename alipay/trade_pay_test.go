@@ -15,8 +15,8 @@ func TestAliTrade(t *testing.T) {
 	app := new(AliTrade)
 
 	app.InitBaseConfig(&BaseAliConfig{
-		AppId:    "2018010401585047",
-		AppAuthToken:"201801BB635d7c6ab47a459ba579f876d3736X68",
+		AppId:    "2017122701286469",
+		AppAuthToken:"201801BBe10810a6828f40328bf24cabdc748X87",
 	})
 
 	ret, err := app.Handle(map[string]interface{}{

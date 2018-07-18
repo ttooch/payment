@@ -111,6 +111,7 @@ func (tra *AliQuery) sendReq(reqUrl string, pay interface{},privateKey string) (
 	data.Add("timestamp", tra.TimeStamp)
 	data.Add("version", tra.Version)
 	data.Add("biz_content",tra.BizContent)
+	data.Add("app_auth_token",tra.AppAuthToken)
 	data.Add("sign", tra.RSASign(data,privateKey))
 
 	httpResp, err := client.PostForm(reqUrl,data)
