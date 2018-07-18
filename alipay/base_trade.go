@@ -17,6 +17,11 @@ const (
 	ALITRADE = "https://openapi.alipay.com/gateway.do?charset=utf-8"
 	SUCCESS     = "SUCCESS"
 	FAIL     = "FAIL"
+
+	k_RESPONSE_SUFFIX = "_response"
+	k_ERROR_RESPONSE  = "error_response"
+	k_SIGN_NODE_NAME  = "sign"
+
 )
 
 type BaseAliConfig struct {
@@ -32,6 +37,7 @@ type BaseAliConfig struct {
 	AppAuthToken   string        `xml:"app_auth_token" json:"app_auth_token"`
 }
 
+//RSA256签名
 func (base *BaseAliConfig) RSASign(m url.Values,privateKey string) string {
 	//对url.values进行排序
 	if m == nil {
@@ -53,4 +59,24 @@ func (base *BaseAliConfig) RSASign(m url.Values,privateKey string) string {
 
 	fmt.Println("base加密：",base64.StdEncoding.EncodeToString(b))
 	return base64.StdEncoding.EncodeToString(b)
+}
+
+//获取支付返回的需要验签的内容
+func (base *BaseAliConfig) ParserJSONSource(rawData string, nodeName string, nodeIndex int) (content string, sign string) {
+	var dataStartIndex = nodeIndex + len(nodeName) + 2
+	var signIndex = strings.LastIndex(rawData, "\""+k_SIGN_NODE_NAME+"\"")
+	var dataEndIndex = signIndex - 1
+
+	var indexLen = dataEndIndex - dataStartIndex
+	if indexLen < 0 {
+		return "", ""
+	}
+	content = rawData[dataStartIndex:dataEndIndex]
+
+	var signStartIndex = signIndex + len(k_SIGN_NODE_NAME) + 4
+	sign = rawData[signStartIndex:]
+	var signEndIndex = strings.LastIndex(sign, "\"}")
+	sign = sign[:signEndIndex]
+
+	return content, sign
 }

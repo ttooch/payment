@@ -13,6 +13,7 @@ import (
 	"io/ioutil"
 	"encoding/json"
 	"errors"
+	"strings"
 )
 
 type AliRefund struct {
@@ -67,13 +68,30 @@ func (tra *AliRefund) RetData(ret []byte,aliPublicKey string) (re string, err er
 	result := new(AliPayTradeRefundResponse)
 	json.Unmarshal(ret, result)
 
-	b,_:=json.Marshal(result.AliPayTradeRefund)
+	//b,_:=json.Marshal(result.AliPayTradeRefund)
 
 	//TODO 调用之后验签 验签方法还要改一下
-	err = helper.RSAVerify([]byte(b),result.Sign, aliPublicKey)
+	dataStr := string(ret)
+	var rootNodeName = strings.Replace(tra.Method, ".", "_", -1) + k_RESPONSE_SUFFIX
+
+	var rootIndex = strings.LastIndex(dataStr, rootNodeName)
+	var errorIndex = strings.LastIndex(dataStr, k_ERROR_RESPONSE)
+
+	var content string
+	var sign string
+
+	if rootIndex > 0 {
+		content, sign = tra.ParserJSONSource(dataStr, rootNodeName, rootIndex)
+	} else if errorIndex > 0 {
+		content, sign = tra.ParserJSONSource(dataStr, k_ERROR_RESPONSE, errorIndex)
+	} else {
+		return "",errors.New("延签参数转换失败")
+	}
+
+	err = helper.RSAVerify([]byte(content),sign, aliPublicKey)
 	if err != nil {
 		fmt.Println(err.Error())
-		//return nil ,err
+		return "" ,err
 	}
 
 	if result.AliPayTradeRefund.Code != "10000" && result.AliPayTradeRefund.Msg != "Success"{

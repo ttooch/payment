@@ -13,6 +13,7 @@ import (
 	"time"
 	"encoding/json"
 	"errors"
+	"strings"
 )
 
 type AliQuery struct {
@@ -83,13 +84,30 @@ func (tra *AliQuery) RetData(ret []byte,aliPublicKey string) (re *AliPayTradeQue
 	result := new(AliPayTradeQueryResponse)
 	json.Unmarshal(ret, result)
 
-	b,_:=json.Marshal(result.AliPayTradeQuery)
+	//b,_:=json.Marshal(result.AliPayTradeQuery)
 
 	//TODO 调用之后验签 验签方法还要改一下
-	err = helper.RSAVerify([]byte(b),result.Sign, aliPublicKey)
+	dataStr := string(ret)
+	var rootNodeName = strings.Replace(tra.Method, ".", "_", -1) + k_RESPONSE_SUFFIX
+
+	var rootIndex = strings.LastIndex(dataStr, rootNodeName)
+	var errorIndex = strings.LastIndex(dataStr, k_ERROR_RESPONSE)
+
+	var content string
+	var sign string
+
+	if rootIndex > 0 {
+		content, sign = tra.ParserJSONSource(dataStr, rootNodeName, rootIndex)
+	} else if errorIndex > 0 {
+		content, sign = tra.ParserJSONSource(dataStr, k_ERROR_RESPONSE, errorIndex)
+	} else {
+		return nil,errors.New("延签参数转换失败")
+	}
+
+	err = helper.RSAVerify([]byte(content),sign, aliPublicKey)
 	if err != nil {
 		fmt.Println(err.Error())
-		//return nil ,err
+		return nil ,err
 	}
 
 	if result.AliPayTradeQuery.Code != "10000" && result.AliPayTradeQuery.Msg != "Success"{
