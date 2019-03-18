@@ -12,7 +12,6 @@ import (
 	"crypto/sha256"
 	"crypto/rand"
 	"crypto"
-	"github.com/smartwalle/alipay/encoding"
 	"encoding/base64"
 )
 
@@ -36,7 +35,7 @@ func CurrentTimeStampMS() int64 {
 //rsa2加密
 func RsaEncrypt(origData []byte,privateKey string) ([]byte, error) {
 	//私钥切片处理
-	key :=encoding.ParsePrivateKey(privateKey)
+	key := ParsePrivateKey(privateKey)
 
 	block, _ := pem.Decode([]byte(key))//PiravteKeyData为私钥文件的字节数组
 	if block == nil {
@@ -67,7 +66,7 @@ func RSAVerify(src[]byte, sign, publicKey string) error {
 		return err
 	}
 	//支付宝公钥做切片处理
-	key := encoding.ParsePublicKey(publicKey)
+	key := ParsePublicKey(publicKey)
 	block, _ := pem.Decode([]byte(key))//PublicKeyData为私钥文件的字节数组
 	if block == nil {
 		fmt.Println("Public block空")

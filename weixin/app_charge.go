@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
-	"github.com/scholar-ink/payment/helper"
 	"time"
+	"github.com/ttooch/payment/helper"
 )
 
 type AppCharge struct {

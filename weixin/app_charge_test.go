@@ -15,9 +15,10 @@ func TestHandle(t *testing.T) {
 	//	Md5Key:         "9689489231d792a260e2559586276916",
 	//	SignType:       "MD5",
 	//	ExpireDuration: time.Second * 60,
+	//	NotifyUrl: "http://api.store.udian.me/v1/payment/notify",
 	//})
 
-	//服务商发起支付
+	////服务商发起支付
 	app.InitBaseConfig(&BaseConfig{
 		AppId:     "wxf06ac118ca3d9533",
 		MchId:     "1495589652",
@@ -33,7 +34,7 @@ func TestHandle(t *testing.T) {
 		"body":             "腾讯充值中心-QQ会员充",
 		"detail":           "商品详细描述",
 		"attach":           "1111",
-		"out_trade_no":     "2015080612534621222112",
+		"out_trade_no":     "20150806125346212221121",
 		"fee_type":         "CNY",
 		"total_fee":        1,
 		"spbill_create_ip": "123.12.12.123",
