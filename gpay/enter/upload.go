@@ -1,4 +1,4 @@
-package gpay
+package enter
 
 import (
 	"bytes"
@@ -44,7 +44,9 @@ func (up *Upload) Handle(conf *UploadConf) (interface{}, error) {
 
 func (up *Upload) RetData(ret []byte) (*UploadReturn, error) {
 
-	ret, err := up.BaseCharge.RetData(ret)
+	var baseReturn BaseConfig
+
+	err := json.Unmarshal(ret, &baseReturn)
 
 	if err != nil {
 		return nil, err
@@ -52,7 +54,7 @@ func (up *Upload) RetData(ret []byte) (*UploadReturn, error) {
 
 	uploadReturn := new(UploadReturn)
 
-	err = json.Unmarshal(ret, &uploadReturn)
+	err = json.Unmarshal([]byte(baseReturn.EncryptData), &uploadReturn)
 
 	if err != nil {
 		return nil, err

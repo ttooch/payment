@@ -116,9 +116,9 @@ func (wx *WxNotify) replyNotify(flag bool, msg string) string {
 	return string(b)
 }
 
-type CallBack func(data *WxNotifyData) error
+type WxCallBack func(data *WxNotifyData) error
 
-func (wx *WxNotify) Handle(xml string, callBack CallBack) string {
+func (wx *WxNotify) Handle(xml string, callBack WxCallBack) string {
 	err := wx.getNotifyData(xml)
 
 	if err != nil {

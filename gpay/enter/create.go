@@ -1,16 +1,16 @@
-package gpay
+package enter
 
 import (
 	"encoding/json"
 	"github.com/ttooch/payment/helper"
 )
 
-type Enter struct {
-	*EnterConf
+type CreateEnter struct {
+	*CreateConf
 	BaseCharge
 }
 
-type EnterConf struct {
+type CreateConf struct {
 	LoginNo                  string      `json:"loginNo"`//商户登陆账号
 	AccountType              string      `json:"accountType"`//开户类型
 	MerchantName             string      `json:"merchantName"`//商户名称
@@ -89,7 +89,7 @@ type FeeInfo struct {
 	FeeType     string `json:"feeType"`//0-比例收取,1-固定金额
 }
 
-type EnterReturn struct {
+type CreateReturn struct {
 	ResultCode  string `json:"resultCode"`
 	ErrorCode   string `json:"errorCode"`
 	ErrCodeDesc string `json:"errCodeDesc"`
@@ -98,7 +98,7 @@ type EnterReturn struct {
 	Ext         string `json:"ext"`
 }
 
-func (en *Enter) Handle(conf *EnterConf) (interface{}, error) {
+func (en *CreateEnter) Handle(conf *CreateConf) (interface{}, error) {
 	err := en.BuildData(conf)
 	if err != nil {
 		return nil, err
@@ -111,7 +111,7 @@ func (en *Enter) Handle(conf *EnterConf) (interface{}, error) {
 	return en.RetData(ret)
 }
 
-func (en *Enter) RetData(ret []byte) (*EnterReturn, error) {
+func (en *CreateEnter) RetData(ret []byte) (*CreateReturn, error) {
 
 	ret, err := en.BaseCharge.RetData(ret)
 
@@ -119,7 +119,7 @@ func (en *Enter) RetData(ret []byte) (*EnterReturn, error) {
 		return nil, err
 	}
 
-	enterReturn := new(EnterReturn)
+	enterReturn := new(CreateReturn)
 
 	err = json.Unmarshal(ret, &enterReturn)
 
@@ -130,7 +130,7 @@ func (en *Enter) RetData(ret []byte) (*EnterReturn, error) {
 	return enterReturn, nil
 }
 
-func (en *Enter) BuildData(conf *EnterConf) error {
+func (en *CreateEnter) BuildData(conf *CreateConf) error {
 
 	b, err := json.Marshal(conf)
 
@@ -138,7 +138,7 @@ func (en *Enter) BuildData(conf *EnterConf) error {
 		return err
 	}
 
-	en.EnterConf = conf
+	en.CreateConf = conf
 
 	en.ServiceName = "merchant.enter.create"
 

@@ -45,9 +45,6 @@ func CurrentTimeStampMS() int64 {
 //rsa1公钥加密
 func Rsa1Encrypt(pfxData, origData []byte, certPassWord string) (string, error) {
 
-	fmt.Println(pfxData)
-	fmt.Println(certPassWord)
-
 	_, cert, err := pkcs12.Decode(pfxData, certPassWord)
 
 	if err != nil {
@@ -66,15 +63,13 @@ func Rsa1Encrypt(pfxData, origData []byte, certPassWord string) (string, error) 
 
 	for _, chunk := range chunks {
 
-		bytes, err := rsa.EncryptPKCS1v15(rand2.Reader, pub, chunk)
+		b, err := rsa.EncryptPKCS1v15(rand2.Reader, pub, chunk)
 
 		if err != nil {
-
 			return "", err
-
 		}
 
-		buffer.Write(bytes)
+		buffer.Write(b)
 
 	}
 	return base64.StdEncoding.EncodeToString(buffer.Bytes()), nil

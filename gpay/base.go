@@ -2,16 +2,18 @@ package gpay
 
 import (
 	"bytes"
-	"code.aliyun.com/udian_pay/payment/utils"
 	"encoding/json"
-	"fmt"
 	"github.com/ttooch/payment/helper"
 	"io/ioutil"
+	"time"
+	"errors"
+	"strings"
+	"fmt"
+	"github.com/google/uuid"
 )
 
 const (
-	UploadUrl = "http://test-gateway.g-pay.cn/image/upload.do"
-	EnterUrl  = "http://test-gateway.g-pay.cn/merchant/enter/api.do"
+	ChargeUrl = "https://jh.g-pay.cn/api/order.do"
 	SUCCESS   = "SUCCESS"
 )
 
@@ -20,29 +22,37 @@ type BaseCharge struct {
 }
 
 type BaseConfig struct {
-	ServiceName  string `json:"serviceName"`
-	Charset      string `json:"charset"`
-	Version      string `json:"version"`
-	AgentNo      string `json:"agentNo"`
-	Key          string `json:"key"`
-	PfxData      []byte `json:"pfx_data"`
-	CertPassWord string `json:"certPassWord"`
-	EncryptType  string `json:"encryptType"`
-	EncryptData  string `json:"encryptData"`
-	SignData     string `json:"signData"`
-	ResponseCode string `xml:"responseCode" json:"responseCode"`
-	ResponseMsg  string `xml:"responseMsg" json:"responseMsg"`
+	ServiceName    string        `json:"serviceName"`
+	Version        string        `json:"version"`
+	MerchantNo     string        `json:"merchantNo"`
+	EncryptType    string        `json:"encryptType"`
+	Md5Key         string        `xml:"-" json:"-"`
+	ExpireDuration time.Duration `json:"-"`
+	SourceData     string        `json:"sourceData"`
+	SignType       string        `json:"signType"`
+	SignData       string        `json:"signData"`
+	RequestId      string        `json:"requestId"`
+	RequestTime    string        `json:"requestTime"`
+	ResponseCode   string        `json:"responseCode,omitempty"`
+	ResponseMsg    string        `json:"responseMsg,omitempty"`
 }
 
 func (base *BaseCharge) InitBaseConfig(config *BaseConfig) {
-	config.Version = "3.0"
-	config.Charset = "UTF-8"
-	config.EncryptType = "RSA"
+	config.Version = "2.0"
+	config.EncryptType = "NONE"
+	config.SignType = "01"
+	config.RequestId = uuid.New().String()
+	config.RequestTime = time.Now().Format("20060102150405")
+
 	base.BaseConfig = config
 }
 
 func (base *BaseCharge) SetSign() {
-	base.SignData = helper.Md5(base.EncryptData + base.Key)
+	mapData := helper.Struct2Map(base)
+
+	signStr := helper.CreateLinkString(&mapData)
+
+	base.SignData = base.makeSign(signStr)
 }
 
 func (base *BaseCharge) RetData(ret []byte) (retData []byte, err error) {
@@ -54,44 +64,50 @@ func (base *BaseCharge) RetData(ret []byte) (retData []byte, err error) {
 		return
 	}
 
-	//MD5值验证
-	stringMd5 := utils.Md5(baseReturn.EncryptData + base.Key)
-
-	if stringMd5 != baseReturn.SignData {
-		fmt.Print("MD5值验证不通过，远程MD5值：" + baseReturn.SignData + ",计算出MD5值：" + stringMd5)
-		return nil, nil
+	if baseReturn.ResponseCode != "0000" {
+		return nil,errors.New(baseReturn.ResponseMsg)
 	}
 
-	retData, err = helper.Rsa1Decrypt(base.PfxData, baseReturn.EncryptData, base.CertPassWord)
+	var mapData map[string]interface{}
 
-	return
+	err = json.Unmarshal(ret, &mapData)
+
+	if err != nil {
+		return
+	}
+
+	delete(mapData,"signData")
+
+	signStr := helper.CreateLinkString(&mapData)
+
+	if baseReturn.SignData != strings.ToUpper(base.makeSign(signStr)) {
+		return nil,errors.New("返回结果签名校验失败")
+	}
+
+	return []byte(baseReturn.SourceData),nil
 }
 
 func (base *BaseCharge) makeSign(sign string) string {
+	switch base.SignType {
+	case "01":
+		sign += "&key=" + base.Md5Key
+		sign = helper.Md5(sign)
+	}
 
-	//switch base.SignType {
-	//
-	//case "MD5":
-	//	sign += "&key=" + base.Md5Key
-	//
-	//	sign = helper.Md5(sign)
-	//}
-
-	//return strings.ToUpper(sign)
-	return ""
+	return sign
 }
 
-func (base *BaseCharge) SendReq(reqUrl string, pay interface{}) (b []byte, err error) {
+func (base *BaseCharge) SendReq(reqUrl string) (b []byte, err error) {
 
 	buffer := bytes.NewBuffer(b)
 
-	err = json.NewEncoder(buffer).Encode(pay)
+	err = json.NewEncoder(buffer).Encode(base)
+
+	fmt.Println(buffer.String())
 
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println(buffer)
 
 	client := helper.NewHttpClient()
 
@@ -103,8 +119,6 @@ func (base *BaseCharge) SendReq(reqUrl string, pay interface{}) (b []byte, err e
 	defer rsp.Body.Close()
 
 	b, err = ioutil.ReadAll(rsp.Body)
-
-	fmt.Println(string(b))
 
 	return
 }
